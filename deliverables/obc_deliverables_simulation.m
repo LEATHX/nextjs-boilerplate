@@ -15,7 +15,7 @@ loadFrac = linspace(0.10, 1.00, 19)';
 N = numel(loadFrac);
 
 % Loss model coefficients (representative for high-efficiency 7 kW OBC)
-Req_eq = 0.18;           % equivalent conduction-loss resistance (ohm)
+R_equiv = 0.18;          % equivalent conduction-loss resistance (ohm)
 ksw = 0.75e-6;           % switching-loss coefficient
 Pcore_base = 8;          % W at 100 kHz
 Pgate_base = 6;          % W at 100 kHz
@@ -23,6 +23,7 @@ Paux = 20;               % controller/fan/sensor fixed auxiliary loss (W)
 tau = 0.020;             % s, closed-loop dynamic time constant
 baselineLoadFrac = 0.30; % pu, pre-step operating point for transient test
 droopCoeffV = 0.3;       % V/pu, output droop sensitivity for the dynamic model
+staticDroopCoeff = 0.004;% pu, static output-voltage droop across load sweep
 
 Pout = zeros(N,1);
 Iout = zeros(N,1);
@@ -40,7 +41,7 @@ for k = 1:N
     Iout(k) = Pout(k) / Vout_nom;
 
     % Loss components
-    Pcond = (Iout(k)^2) * Req_eq;
+    Pcond = (Iout(k)^2) * R_equiv;
     Psw = ksw * fs * Iout(k);
     Pcore = Pcore_base * (fs / 100e3)^1.2;
     Pgate = Pgate_base * (fs / 100e3);
@@ -58,9 +59,9 @@ for k = 1:N
     Iin_rms(k) = Pin(k) / (Vin_rms * pf(k));
 
     % Voltage regulation with closed-loop control.
-    % The 0.004 coefficient corresponds to 0.4% max static droop from 10% to
+    % The static droop coefficient corresponds to 0.4% max static droop from 10% to
     % 100% load, aligned with a tightly regulated DC output objective.
-    Vout_reg(k) = Vout_nom * (1 - 0.004*(1-lf));
+    Vout_reg(k) = Vout_nom * (1 - staticDroopCoeff*(1-lf));
 end
 
 %% Dynamic response (deliverable: output regulation demonstration)
