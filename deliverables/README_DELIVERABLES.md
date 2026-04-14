@@ -9,7 +9,7 @@
 1. Open MATLAB.
 2. Run:
    ```matlab
-   cd('.../nextjs-boilerplate/deliverables')
+   cd('path/to/deliverables')
    obc_deliverables_simulation
    ```
 3. Check `deliverables/outputs/` for CSV/MAT/PNG outputs.
