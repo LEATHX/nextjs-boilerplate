@@ -8,7 +8,9 @@ Vout_nom = 450;          % VDC
 Pout_max = 7000;         % W
 fs = 100e3;              % Hz (within 65-150 kHz requirement)
 
-% Load sweep for deliverable plots/tables
+% Load sweep for deliverable plots/tables.
+% Assignment asks for operating voltage/power range performance; this script
+% evaluates the practical charging range from 10% to 100% rated load.
 loadFrac = (0.10:0.05:1.00)';
 N = numel(loadFrac);
 
@@ -18,6 +20,9 @@ ksw = 0.75e-6;           % switching-loss coefficient
 Pcore_base = 8;          % W at 100 kHz
 Pgate_base = 6;          % W at 100 kHz
 Paux = 20;               % controller/fan/sensor fixed auxiliary loss (W)
+tau = 0.020;             % s, closed-loop dynamic time constant
+baselineLoadFrac = 0.30; % pu, pre-step operating point for transient test
+droopCoeffV = 0.3;       % V/pu, output droop sensitivity for the dynamic model
 
 Pout = zeros(N,1);
 Iout = zeros(N,1);
@@ -44,7 +49,8 @@ for k = 1:N
     Pin(k) = Pout(k) + Ploss(k);
     eta(k) = Pout(k) / Pin(k);
 
-    % PF model (PFC front-end) - maintained >0.98 in this operating range
+    % PF model (PFC front-end) - simple empirical approximation of typical
+    % high-quality single-phase PFC behavior over 10%-100% load.
     pf(k) = min(0.998, 0.985 + 0.012*lf - 0.002*(1-lf)^2);
     Iin_rms(k) = Pin(k) / (Vin_rms * pf(k));
 
@@ -55,15 +61,14 @@ end
 %% Dynamic response (deliverable: output regulation demonstration)
 dt = 100e-6;
 t = (0:dt:0.35)';
-Pstep = 0.30*Pout_max * ones(size(t));
+Pstep = baselineLoadFrac*Pout_max * ones(size(t));
 Pstep(t >= 0.10) = 1.00*Pout_max;
 
 Vdyn = zeros(size(t));
 Vdyn(1) = Vout_nom;
-tau = 0.020; % 20 ms closed-loop dynamic
 
 for k = 2:numel(t)
-    droop = 0.3 * (Pstep(k)/Pout_max - 0.30);  % small load droop term (V)
+    droop = droopCoeffV * (Pstep(k)/Pout_max - baselineLoadFrac); % small load droop term (V)
     Vref = Vout_nom - droop;
     Vdyn(k) = Vdyn(k-1) + (Vref - Vdyn(k-1)) * dt / tau;
 end
