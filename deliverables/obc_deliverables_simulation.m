@@ -144,9 +144,12 @@ fprintf('Min power factor (10%%..100%% load): %.4f\n', min(pf));
 fprintf('Max output-voltage regulation error: %.3f %%\n', max_vreg_pct);
 
 fprintf('\nCompliance checks:\n');
-fprintf('Efficiency >95%% across operating range: %s\n', string(eta_ok));
-fprintf('Power factor >0.98 across operating range: %s\n', string(pf_ok));
-fprintf('Output regulation within +/-1%%: %s\n', string(vreg_ok));
+if eta_ok, etaStatus = 'PASS'; else, etaStatus = 'FAIL'; end
+if pf_ok, pfStatus = 'PASS'; else, pfStatus = 'FAIL'; end
+if vreg_ok, vregStatus = 'PASS'; else, vregStatus = 'FAIL'; end
+fprintf('Efficiency >95%% across operating range: %s\n', etaStatus);
+fprintf('Power factor >0.98 across operating range: %s\n', pfStatus);
+fprintf('Output regulation within +/-1%%: %s\n', vregStatus);
 
 fprintf('\nSaved files in: %s\n', outDir);
 fprintf(' - obc_simulation_results.csv\n');
