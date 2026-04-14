@@ -11,7 +11,7 @@ fs = 100e3;              % Hz (within 65-150 kHz requirement)
 % Load sweep for deliverable plots/tables.
 % Assignment asks for operating voltage/power range performance; this script
 % evaluates the practical charging range from 10% to 100% rated load.
-loadFrac = (0.10:0.05:1.00)';
+loadFrac = linspace(0.10, 1.00, 19)';
 N = numel(loadFrac);
 
 % Loss model coefficients (representative for high-efficiency 7 kW OBC)
@@ -51,10 +51,15 @@ for k = 1:N
 
     % PF model (PFC front-end) - simple empirical approximation of typical
     % high-quality single-phase PFC behavior over 10%-100% load.
+    % Coefficients are tuned so PF starts near 0.985 at light load and rises
+    % toward ~0.998 at full load, which is representative for a well-designed
+    % active PFC stage.
     pf(k) = min(0.998, 0.985 + 0.012*lf - 0.002*(1-lf)^2);
     Iin_rms(k) = Pin(k) / (Vin_rms * pf(k));
 
-    % Voltage regulation with closed-loop control
+    % Voltage regulation with closed-loop control.
+    % The 0.004 coefficient corresponds to 0.4% max static droop from 10% to
+    % 100% load, aligned with a tightly regulated DC output objective.
     Vout_reg(k) = Vout_nom * (1 - 0.004*(1-lf));
 end
 
